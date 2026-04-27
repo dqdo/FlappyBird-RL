@@ -239,7 +239,6 @@ def run_visualization(
 # RUN CONFIGURATION - edit this section to control what runs
 
 if __name__ == "__main__":
-
     # load the trained model from the model_weights directory
     agent = load_agent(
         model_path = os.path.join(MODEL_WEIGHTS_DIR, "flappy_dynamic_dqn_per.pth"),
@@ -248,13 +247,13 @@ if __name__ == "__main__":
     )
 
     # set to True to just watch the agent play, False to run a full evaluation first
-    WATCH_ONLY = True
+    WATCH_ONLY = False
 
     if WATCH_ONLY:
         run_visualization(
             agent = agent,
             duration_seconds = 30, # how long to watch each environment
-            env_filter = ["fixed_fast_narrow"], # or None to watch all environments
+            env_filter = ["fixed_slow_wide"], # or None to watch all environments
         )
     else:
         run_evaluation(
