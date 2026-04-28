@@ -138,6 +138,42 @@ MODEL_CONFIGS = [
         "use_per": True,
         "filename": "flappy_dynamic_dueling_per.pth",
     },
+    {
+        "label": "Fixed Vanilla DQN",
+        "agent_type": "dqn",
+        "use_per": False,
+        "filename": "flappy_fixed_dqn.pth",
+    },
+    {
+        "label": "Fixed Vanilla DQN + PER",
+        "agent_type": "dqn",
+        "use_per": True,
+        "filename": "flappy_fixed_dqn_per.pth",
+    },
+    {
+        "label": "Fixed Double DQN",
+        "agent_type": "ddqn",
+        "use_per": False,
+        "filename": "flappy_fixed_ddqn.pth",
+    },
+    {
+        "label": "Fixed Double DQN + PER",
+        "agent_type": "ddqn",
+        "use_per": True,
+        "filename": "flappy_fixed_ddqn_per.pth",
+    },
+    {
+        "label": "Fixed Dueling DQN",
+        "agent_type": "dueling",
+        "use_per": False,
+        "filename": "flappy_fixed_dueling.pth",
+    },
+    {
+        "label": "Fixed Dueling DQN + PER",
+        "agent_type": "dueling",
+        "use_per": True,
+        "filename": "flappy_fixed_dueling_per.pth",
+    },
 ]
 
 
@@ -180,7 +216,7 @@ def run_one_episode(
     agent: DQNAgent,
     env_cfg: Dict,
     seed: Optional[int] = None,
-    max_steps_per_episode: int = 50000,
+    max_steps_per_episode: int = 1000000,
 ) -> Dict[str, float]:
     """
     Runs one episode and returns score and survival time.
@@ -342,7 +378,7 @@ def evaluate_all_models(
         # Calculate generalization gap relative to actual_train_dist.
         dynamic_rows = [
             r for r in model_rows
-            if r["environment"] == "actual_train_dist"
+            if r["environment"] == "dynamic_train_dist"
         ]
 
         if dynamic_rows:
@@ -353,7 +389,7 @@ def evaluate_all_models(
         for row in model_rows:
             row["generalization_gap"] = dynamic_avg_score - row["avg_score"]
 
-            if row["environment"] == "actual_train_dist":
+            if row["environment"] == "dynamic_train_dist":
                 row["gap_interpretation"] = "baseline"
             elif row["generalization_gap"] > 0:
                 row["gap_interpretation"] = "worse than dynamic baseline"
@@ -456,8 +492,8 @@ def print_full_comparison_table(rows: List[Dict[str, float]]) -> None:
 
 def print_hardest_fixed_vs_dynamic_table(
     rows: List[Dict[str, float]],
-    dynamic_env_name: str = "actual_train_dist",
-    hardest_env_name: str = "fixed_fast_narrow",
+    dynamic_env_name: str = "dynamic_train_dist",
+    hardest_env_name: str = "fixed_ood_fast_narrow",
 ) -> None:
     """
     Compares each model's metrics on the hardest fixed environment
@@ -564,7 +600,7 @@ def save_results_csv(rows: List[Dict[str, float]], path: str) -> None:
 
 if __name__ == "__main__":
     evaluate_all_models(
-        episodes_per_env=200,
+        episodes_per_env=50,
         base_seed=12345,
         output_csv="evaluation_results.csv",
     )
