@@ -46,38 +46,38 @@ DYNAMIC_TEST_ENV = {
 # fast + narrow -> hardest: out-of-distribution stress test
 FIXED_TEST_ENVS = [
     {
-        "name": "fixed_slow_wide",
-        "description": "Fixed: speed=0.75x, gap=260 px (slow + wide, easiest)",
+        "name": "fixed_ood_slow_wide",
+        "description": "Fixed: speed=0.5x, gap=300px — below min speed, above max gap",
         "env_class": FixedFlappyEnv,
-        "kwargs": {"speed": 0.75, "gap_size": 260},
+        "kwargs": {"speed": 0.5, "gap_size": 300},
     },
     {
-        "name": "fixed_slow_narrow",
-        "description": "Fixed: speed=0.75x, gap=140 px (slow + narrow)",
+        "name": "fixed_ood_slow_narrow",
+        "description": "Fixed: speed=0.5x, gap=130px — below min speed, below min gap",
         "env_class": FixedFlappyEnv,
-        "kwargs": {"speed": 0.75, "gap_size": 140},
+        "kwargs": {"speed": 0.5, "gap_size": 130},
     },
     {
-        "name": "fixed_mid_mid",
-        "description": "Fixed: speed=1.00x, gap=200 px (centre of fixed space)",
+        "name": "fixed_ood_fast_wide",
+        "description": "Fixed: speed=1.5x, gap=300px — above max speed, above max gap",
         "env_class": FixedFlappyEnv,
-        "kwargs": {"speed": 1.0, "gap_size": 200},
+        "kwargs": {"speed": 1.5, "gap_size": 300},
     },
     {
-        "name": "fixed_fast_wide",
-        "description": "Fixed: speed=1.25x, gap=260 px (fast + wide)",
+        "name": "fixed_ood_fast_narrow",
+        "description": "Fixed: speed=1.5x, gap=130px — above max speed, below min gap, hardest",
         "env_class": FixedFlappyEnv,
-        "kwargs": {"speed": 1.25, "gap_size": 260},
+        "kwargs": {"speed": 1.5, "gap_size": 130},
     },
     {
-        "name": "fixed_fast_narrow",
-        "description": "Fixed: speed=1.25x, gap=130 px (fast + narrow, hardest)",
+        "name": "fixed_ood_very_fast",
+        "description": "Fixed: speed=1.75x, gap=180px — well above max speed, mid gap",
         "env_class": FixedFlappyEnv,
-        "kwargs": {"speed": 1.25, "gap_size": 130},
+        "kwargs": {"speed": 1.75, "gap_size": 180},
     },
     {
         "name": "fixed_classic",
-        "description": "Fixed: speed=1.0x, gap=140 px (closer to original Flappy Bird)",
+        "description": "Fixed: speed=1.0x, gap=140px — classic Flappy Bird feel",
         "env_class": FixedFlappyEnv,
         "kwargs": {"speed": 1.0, "gap_size": 140},
     },
@@ -241,19 +241,19 @@ def run_visualization(
 if __name__ == "__main__":
     # load the trained model from the model_weights directory
     agent = load_agent(
-        model_path = os.path.join(MODEL_WEIGHTS_DIR, "flappy_dynamic_dqn_per.pth"),
+        model_path = os.path.join(MODEL_WEIGHTS_DIR, "flappy_fixed_dqn.pth"),
         agent_type = "dqn",
         use_per = True,
     )
 
     # set to True to just watch the agent play, False to run a full evaluation first
-    WATCH_ONLY = False
+    WATCH_ONLY = True
 
     if WATCH_ONLY:
         run_visualization(
             agent = agent,
-            duration_seconds = 30, # how long to watch each environment
-            env_filter = ["fixed_slow_wide"], # or None to watch all environments
+            duration_seconds = 120, # how long to watch each environment
+            env_filter = ["dynamic_train_dist"], # or None to watch all environments
         )
     else:
         run_evaluation(

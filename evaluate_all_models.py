@@ -14,10 +14,10 @@ For each model/environment pair, this reports:
 
 Generalization gap is calculated as:
 
-  dynamic_train_dist average score - fixed environment average score
+  actual_train_dist average score - fixed environment average score
 
-Positive gap  = model did worse on that fixed environment than on dynamic_train_dist
-Negative gap  = model did better on that fixed environment than on dynamic_train_dist
+Positive gap  = model did worse on that fixed environment than on actual_train_dist
+Negative gap  = model did better on that fixed environment than on actual_train_dist
 
 Run:
   py evaluate_all_models.py
@@ -56,38 +56,38 @@ DYNAMIC_TEST_ENV = {
 
 FIXED_TEST_ENVS = [
     {
-        "name": "fixed_slow_wide",
-        "description": "Fixed: speed=0.75x, gap=260 px, easiest",
+        "name": "fixed_ood_slow_wide",
+        "description": "Fixed: speed=0.5x, gap=300px — below min speed, above max gap",
         "env_class": FixedFlappyEnv,
-        "kwargs": {"speed": 0.75, "gap_size": 260},
+        "kwargs": {"speed": 0.5, "gap_size": 300},
     },
     {
-        "name": "fixed_slow_narrow",
-        "description": "Fixed: speed=0.75x, gap=140 px",
+        "name": "fixed_ood_slow_narrow",
+        "description": "Fixed: speed=0.5x, gap=130px — below min speed, below min gap",
         "env_class": FixedFlappyEnv,
-        "kwargs": {"speed": 0.75, "gap_size": 140},
+        "kwargs": {"speed": 0.5, "gap_size": 130},
     },
     {
-        "name": "fixed_mid_mid",
-        "description": "Fixed: speed=1.00x, gap=200 px",
+        "name": "fixed_ood_fast_wide",
+        "description": "Fixed: speed=1.5x, gap=300px — above max speed, above max gap",
         "env_class": FixedFlappyEnv,
-        "kwargs": {"speed": 1.0, "gap_size": 200},
+        "kwargs": {"speed": 1.5, "gap_size": 300},
     },
     {
-        "name": "fixed_fast_wide",
-        "description": "Fixed: speed=1.25x, gap=260 px",
+        "name": "fixed_ood_fast_narrow",
+        "description": "Fixed: speed=1.5x, gap=130px — above max speed, below min gap, hardest",
         "env_class": FixedFlappyEnv,
-        "kwargs": {"speed": 1.25, "gap_size": 260},
+        "kwargs": {"speed": 1.5, "gap_size": 130},
     },
     {
-        "name": "fixed_fast_narrow",
-        "description": "Fixed: speed=1.25x, gap=130 px, hardest",
+        "name": "fixed_ood_very_fast",
+        "description": "Fixed: speed=1.75x, gap=180px — well above max speed, mid gap",
         "env_class": FixedFlappyEnv,
-        "kwargs": {"speed": 1.25, "gap_size": 130},
+        "kwargs": {"speed": 1.75, "gap_size": 180},
     },
     {
         "name": "fixed_classic",
-        "description": "Fixed: speed=1.00x, gap=140 px, closer to classic Flappy Bird",
+        "description": "Fixed: speed=1.0x, gap=140px — classic Flappy Bird feel",
         "env_class": FixedFlappyEnv,
         "kwargs": {"speed": 1.0, "gap_size": 140},
     },
@@ -339,10 +339,10 @@ def evaluate_all_models(
 
             model_rows.append(row)
 
-        # Calculate generalization gap relative to dynamic_train_dist.
+        # Calculate generalization gap relative to actual_train_dist.
         dynamic_rows = [
             r for r in model_rows
-            if r["environment"] == "dynamic_train_dist"
+            if r["environment"] == "actual_train_dist"
         ]
 
         if dynamic_rows:
@@ -353,7 +353,7 @@ def evaluate_all_models(
         for row in model_rows:
             row["generalization_gap"] = dynamic_avg_score - row["avg_score"]
 
-            if row["environment"] == "dynamic_train_dist":
+            if row["environment"] == "actual_train_dist":
                 row["gap_interpretation"] = "baseline"
             elif row["generalization_gap"] > 0:
                 row["gap_interpretation"] = "worse than dynamic baseline"
@@ -456,7 +456,7 @@ def print_full_comparison_table(rows: List[Dict[str, float]]) -> None:
 
 def print_hardest_fixed_vs_dynamic_table(
     rows: List[Dict[str, float]],
-    dynamic_env_name: str = "dynamic_train_dist",
+    dynamic_env_name: str = "actual_train_dist",
     hardest_env_name: str = "fixed_fast_narrow",
 ) -> None:
     """
@@ -564,7 +564,7 @@ def save_results_csv(rows: List[Dict[str, float]], path: str) -> None:
 
 if __name__ == "__main__":
     evaluate_all_models(
-        episodes_per_env=50,
+        episodes_per_env=200,
         base_seed=12345,
         output_csv="evaluation_results.csv",
     )

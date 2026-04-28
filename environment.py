@@ -21,6 +21,11 @@ BASE_FLAP_VEL = -9.0
 # base horizontal speed pipes move per frame
 BASE_SPEED = 3.0
 
+# training distribution speed range - used to normalise speed_norm in observations
+# so that FixedFlappyEnv instances report correct speed values to the agent
+TRAIN_SPEED_MIN = 0.75
+TRAIN_SPEED_MAX = 1.25
+
 # bird's fixed horizontal position and collision radius
 BIRD_X = 80
 BIRD_RADIUS = 12
@@ -46,7 +51,7 @@ class DynamicFlappyEnv:
         self,
         speed_min: float = 0.75, # slowest speed multiplier
         speed_max: float = 1.25, # fastest speed multiplier
-        gap_min: int = 150, # smallest pipe opening in pixels
+        gap_min: int = 120, # smallest pipe opening in pixels
         gap_max: int = 280, # largest pipe opening in pixels
         speed_period: int = 300, # steps per full speed oscillation cycle
         gap_period: int = 450, # steps per full gap size oscillation cycle
@@ -222,9 +227,11 @@ class DynamicFlappyEnv:
     # build the 7-float observation vector from the current game state
     def _obs(self) -> np.ndarray:
         p = self._next_pipe()
-        # normalise speed to [0, 1] within the configured speed range
-        speed_norm = (self.current_speed - self.speed_min) / max(
-            self.speed_max - self.speed_min, 1e-6
+        # normalise speed to [0, 1] within the training distribution range so
+        # that FixedFlappyEnv instances (where speed_min == speed_max) report
+        # the correct speed to the agent instead of always outputting 0.0
+        speed_norm = (self.current_speed - TRAIN_SPEED_MIN) / (
+            TRAIN_SPEED_MAX - TRAIN_SPEED_MIN
         )
         # normalise gap phase to [0, 1] using the sine of the current phase
         gap_phase_norm = (math.sin(self._gap_phase) + 1) / 2

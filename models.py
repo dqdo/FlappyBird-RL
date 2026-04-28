@@ -573,7 +573,7 @@ def build_agent(args, env: DynamicFlappyEnv) -> DQNAgent:
 DEFAULT_ENV_KWARGS = dict(
     speed_min = 0.75,
     speed_max = 1.25,
-    gap_min = 100,
+    gap_min = 150,
     gap_max = 280,
     speed_period = 300,
     gap_period = 450,
@@ -788,7 +788,7 @@ def main():
     parser.add_argument("--viz-duration", type=int, default=10)
     parser.add_argument("--speed-min", type=float, default=0.75)
     parser.add_argument("--speed-max", type=float, default=1.25)
-    parser.add_argument("--gap-min", type=int, default=100)
+    parser.add_argument("--gap-min", type=int, default=150)
     parser.add_argument("--gap-max", type=int, default=280)
     parser.add_argument("--speed-period", type=int, default=300)
     parser.add_argument("--gap-period", type=int, default=450)
