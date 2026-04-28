@@ -40,7 +40,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from environment import DynamicFlappyEnv
+from environment import DynamicFlappyEnv, FixedFlappyEnv
 
 # directory where all model checkpoint files will be saved
 MODEL_WEIGHTS_DIR = "model_weights"
@@ -464,6 +464,7 @@ def train(
     viz_interval: int = 100_000,
     viz_duration: int = 10,
     env_kwargs: Dict = None,
+    label: str = ""
 ) -> Tuple[List[float], List[float]]:
     if env_kwargs is None:
         env_kwargs = {}
@@ -520,6 +521,8 @@ def train(
                 f"step {step:>8,} | ep {ep:>5,} | "
                 f"score(50) {sc:>6.2f} | best {best_ep_score:.0f} | loss {ls:.4f} | eps {agent.eps:.3f}"
             )
+            with open(label+".csv", "a") as f:
+                f.write(f"{step},{ep},{sc},{best_ep_score},{ls},{agent.eps}\n")
 
         # run a formal evaluation on a separate environment every eval_interval steps
         if step % eval_interval == 0:
@@ -570,7 +573,7 @@ def build_agent(args, env: DynamicFlappyEnv) -> DQNAgent:
 DEFAULT_ENV_KWARGS = dict(
     speed_min = 0.75,
     speed_max = 1.25,
-    gap_min = 150,
+    gap_min = 100,
     gap_max = 280,
     speed_period = 300,
     gap_period = 450,
@@ -590,6 +593,7 @@ def _run_training(
     no_viz: bool = False,
     viz_duration: int = 10,
     env_kwargs: Dict = None,
+    label: str = ""
 ):
     if env_kwargs is None:
         env_kwargs = DEFAULT_ENV_KWARGS.copy()
@@ -599,7 +603,8 @@ def _run_training(
     filename = f"flappy_dynamic_{agent_type}{suffix}.pth"
     # store the file inside the model_weights directory
     save_path = model_path or os.path.join(MODEL_WEIGHTS_DIR, filename)
-    train_env = DynamicFlappyEnv(**env_kwargs)
+    #train_env = DynamicFlappyEnv(**env_kwargs)
+    train_env = FixedFlappyEnv(speed=1.25, gap_size=100)
 
     # lightweight args-like object so build_agent can read agent type and per flag
     class _Args:
@@ -615,6 +620,7 @@ def _run_training(
     else:
         print(f"\n[fresh] No checkpoint at '{save_path}' - starting from scratch.")
 
+    start = time.time()
     train(
         agent,
         train_env,
@@ -623,7 +629,13 @@ def _run_training(
         viz_interval = 0 if no_viz else 100_000,
         viz_duration = viz_duration,
         env_kwargs = env_kwargs,
+        label=label
     )
+    end = time.time()
+    delta = end - start
+    print(f"Trained for {delta} seconds.")
+    with open("times.txt", "a") as f:
+        f.write(f"{label},{delta}\n")
 
     print(f"\n[done] {save_path} training complete.")
     train_env.close()
@@ -730,6 +742,8 @@ def train_all(
 
     # train each variant in order, printing which one is starting
     for i, (agent_type, use_per, label) in enumerate(configs, 1):
+        with open(label + ".csv", "w") as f:
+            f.write("step,ep,score(50),best,loss,eps\n")
         print(f"\n{'-'*60}")
         print(f"  [{i}/{len(configs)}]  {label}")
         print(f"{'-'*60}")
@@ -740,6 +754,7 @@ def train_all(
             no_viz = no_viz,
             viz_duration = viz_duration,
             env_kwargs = env_kwargs,
+            label=label
         )
 
     print(f"\n{'='*60}")
@@ -773,7 +788,7 @@ def main():
     parser.add_argument("--viz-duration", type=int, default=10)
     parser.add_argument("--speed-min", type=float, default=0.75)
     parser.add_argument("--speed-max", type=float, default=1.25)
-    parser.add_argument("--gap-min", type=int, default=150)
+    parser.add_argument("--gap-min", type=int, default=100)
     parser.add_argument("--gap-max", type=int, default=280)
     parser.add_argument("--speed-period", type=int, default=300)
     parser.add_argument("--gap-period", type=int, default=450)
